@@ -1632,7 +1632,7 @@ impl<'ra, 'tcx> Resolver<'ra, 'tcx> {
         } else {
             let msg = match suggestion.target {
                 SuggestionTarget::SimilarlyNamed => format!(
-                    "{} {} with a similar name exists",
+                    "{} {} with a SIMILAR name exists",
                     suggestion.res.article(),
                     suggestion.res.descr()
                 ),

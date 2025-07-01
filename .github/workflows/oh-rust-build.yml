@@ -1,0 +1,64 @@
+# .github/workflows/oh-rust-build.yml
+name: Build Oh-Rust
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Primary targets
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            
+          # Apple Silicon
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            
+          # Linux with musl for static binaries
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake
+
+      - name: Install musl tools (Ubuntu musl target)
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: |
+          sudo apt-get install -y musl-tools
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build Oh-Rust
+        run: |
+          chmod +x oh-rust-release.sh
+          ./oh-rust-release.sh
+        shell: bash
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: oh-rust-${{ matrix.target }}
+          path: oh-rust-latest-${{ matrix.target }}.tar.gz
+          retention-days: 30

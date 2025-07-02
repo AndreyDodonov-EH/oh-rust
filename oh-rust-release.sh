@@ -16,16 +16,16 @@ OS_TYPE=$(detect_os)
 
 # Build the Rust compiler
 if [[ "$OS_TYPE" == "windows" ]]; then
-    python x.py build --stage 2
+    python x.py build --stage 2 library
 else
     # Ensure x.py is executable
     [[ -x "x.py" ]] || chmod +x x.py
     
     # Try python3 first, fall back to python
     if command -v python3 &> /dev/null; then
-        python3 x.py build --stage 2
+        python3 x.py build --stage 2 library
     else
-        ./x.py build --stage 2
+        ./x.py build --stage 2 library
     fi
 fi 
 
@@ -38,10 +38,10 @@ if [ ! -d "$BUILD_DIR" ]; then
     echo "Error: $BUILD_DIR not found."
     case "$OS_TYPE" in
         windows)
-            echo "Run: python x.py build --stage 2"
+            echo "Run: python x.py build --stage 2 library"
             ;;
         *)
-            echo "Run: ./x.py build --stage 2"
+            echo "Run: ./x.py build --stage 2 library"
             ;;
     esac
     exit 1

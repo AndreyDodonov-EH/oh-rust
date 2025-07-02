@@ -55,6 +55,28 @@ mkdir -p "$DIST_DIR"
 # Copy all necessary files
 cp -r "$BUILD_DIR"/* "$DIST_DIR/"
 
+# After copying to $DIST_DIR, clean up based on OS
+echo "Cleaning up build artifacts..."
+
+if [[ "$OS_TYPE" == "windows" ]]; then
+    # Remove PDB files (huge on Windows)
+    find "$DIST_DIR" -name "*.pdb" -delete
+    
+    # Remove static libraries (not needed for running)
+    find "$DIST_DIR" -name "*.lib" -delete
+fi
+
+# Remove LLVM static libs (all platforms, these are HUGE)
+rm -rf "$DIST_DIR/lib/rustlib/$TARGET/lib/*.rlib" 2>/dev/null || true
+
+# Remove test files
+find "$DIST_DIR" -name "*test*" -type f -delete 2>/dev/null || true
+
+# Optional: Strip binaries (reduces size further)
+if [[ "$OS_TYPE" != "windows" ]]; then
+    find "$DIST_DIR/bin" -type f -executable -exec strip {} \; 2>/dev/null || true
+fi
+
 # Include version info
 RUSTC_BIN="./build/$TARGET/stage2/bin/rustc"
 if [[ "$OS_TYPE" == "windows" ]]; then
@@ -64,7 +86,7 @@ fi
 # Create version file
 cat > "$DIST_DIR/OH-RUST-VERSION" << EOF
 Oh-Rust - The Rust That Truly Hates You
-Built from stage2 (self-hosted)
+Built from stage2
 $("$RUSTC_BIN" --version)
 Build date: $(date)
 Target: $TARGET
